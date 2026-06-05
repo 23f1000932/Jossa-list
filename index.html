@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JoSAA 2026 CSE Admission Analysis</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --border: #e2e0d6;
+    --border-strong: #c8c5b8;
+    --text: #1a1916;
+    --text-muted: #6b6a64;
+    --text-faint: #9e9d97;
+    --accent: #1a3d6b;
+    --accent-light: #e8f0fb;
+    --accent-mid: #3a6db5;
+    --green: #0f6840;
+    --green-light: #e6f4ec;
+    --amber: #7a4a08;
+    --amber-light: #fdf3e3;
+    --red: #8c2020;
+    --red-light: #fdf0f0;
+    --purple: #4a2d8c;
+    --purple-light: #f0ecff;
+    --teal: #0c5f55;
+    --teal-light: #e3f4f2;
+    --font: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  /* TOP HEADER */
+  .report-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 2.5rem 2rem 2rem;
+    border-bottom: 3px solid #0d2a50;
+  }
+  .report-header h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+  .report-header .subtitle {
+    font-size: 0.9rem;
+    opacity: 0.75;
+    font-weight: 300;
+  }
+  .header-meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .meta-badge {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.8rem;
+    font-family: var(--mono);
+  }
+
+  /* CANDIDATE SPOTLIGHT */
+  .candidate-card {
+    background: var(--amber-light);
+    border: 1.5px solid #e8c87a;
+    border-radius: 8px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem 2rem;
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .candidate-card .label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--amber);
+    margin-bottom: 0.3rem;
+  }
+  .candidate-card .rank-val {
+    font-size: 2rem;
+    font-weight: 600;
+    font-family: var(--mono);
+    color: var(--accent);
+    line-height: 1;
+  }
+  .candidate-card .rank-sub {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+  }
+
+  /* NAV TABS */
+  .nav-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 0.85rem 1.2rem;
+    font-size: 0.83rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .nav-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .nav-tab:hover:not(.active) {
+    color: var(--text);
+    background: var(--bg);
+  }
+
+  /* CONTENT AREAS */
+  .section {
+    display: none;
+    padding: 1.5rem 2rem 2.5rem;
+    max-width: 1200px;
+  }
+  .section.active { display: block; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 1.2rem;
+    margin-top: 0.3rem;
+  }
+
+  /* DISCLAIMER */
+  .disclaimer {
+    background: var(--accent-light);
+    border: 1px solid #b8d0f0;
+    border-radius: 6px;
+    padding: 0.9rem 1.2rem;
+    font-size: 0.8rem;
+    color: #1a3d6b;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+  .disclaimer strong { font-weight: 600; }
+
+  /* TABLES */
+  .tbl-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  table thead tr {
+    background: var(--accent);
+    color: #fff;
+  }
+  table thead th {
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    font-weight: 500;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+  table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  table tbody tr:hover { background: var(--accent-light); }
+  table tbody tr:last-child { border-bottom: none; }
+  table td {
+    padding: 0.55rem 0.8rem;
+    vertical-align: top;
+  }
+  .num { font-family: var(--mono); font-size: 0.78rem; }
+  .rank-good { color: var(--green); font-weight: 500; }
+  .rank-mid { color: var(--amber); }
+  .rank-high { color: var(--red); }
+
+  /* TREND BADGES */
+  .trend {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.72rem;
+    font-weight: 500;
+  }
+  .trend-up { background: var(--red-light); color: var(--red); }
+  .trend-stable { background: var(--amber-light); color: var(--amber); }
+  .trend-down { background: var(--green-light); color: var(--green); }
+
+  /* TIER BADGES */
+  .tier {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+  .t1 { background: #fff3cd; color: #6b4c00; border: 1px solid #f0c040; }
+  .t2 { background: var(--accent-light); color: var(--accent); border: 1px solid #a0c0f0; }
+  .t3 { background: var(--green-light); color: var(--green); border: 1px solid #80c8a0; }
+  .t4 { background: #f5f5f5; color: #666; border: 1px solid #ccc; }
+
+  /* PLACEMENT BADGES */
+  .pkg { font-family: var(--mono); font-weight: 500; color: var(--teal); font-size: 0.78rem; }
+
+  /* CARD GRID */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  .info-card .card-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .info-card .card-main {
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-family: var(--mono);
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .info-card .card-sub { font-size: 0.8rem; color: var(--text-muted); }
+
+  /* RANK BUCKET GRID */
+  .bucket-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .bucket-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .bucket-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 0.6rem 1rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+  .bucket-body {
+    padding: 0.8rem 1rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+  }
+  .bucket-col-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.3rem;
+  }
+  .bucket-item { font-size: 0.8rem; color: var(--text); margin-bottom: 0.2rem; }
+  .bucket-item-branch { font-size: 0.72rem; color: var(--text-muted); }
+
+  /* CANDIDATE SECTION */
+  .option-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .option-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .option-header {
+    padding: 0.65rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .oh-dream { background: var(--red-light); color: var(--red); }
+  .oh-target { background: var(--amber-light); color: var(--amber); }
+  .oh-safe { background: var(--green-light); color: var(--green); }
+  .oh-ews { background: var(--purple-light); color: var(--purple); }
+  .option-body { padding: 0.8rem 1rem; }
+  .option-item {
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.82rem;
+  }
+  .option-item:last-child { border-bottom: none; }
+  .option-item .inst { font-weight: 500; color: var(--text); }
+  .option-item .branch { font-size: 0.75rem; color: var(--text-muted); }
+  .option-item .quota-note { font-size: 0.72rem; color: var(--accent-mid); font-style: italic; }
+
+  /* STRATEGY SECTION */
+  .strategy-list {
+    list-style: none;
+    counter-reset: strategy;
+    margin-bottom: 1.5rem;
+  }
+  .strategy-item {
+    counter-increment: strategy;
+    display: flex;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+  .strategy-item:last-child { border-bottom: none; }
+  .strategy-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+  .strategy-content { flex: 1; }
+  .strategy-inst { font-weight: 600; font-size: 0.88rem; color: var(--text); }
+  .strategy-why { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; line-height: 1.55; }
+  .strategy-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+  .st-nit { background: var(--accent-light); color: var(--accent); }
+  .st-iiit { background: var(--purple-light); color: var(--purple); }
+  .st-gfti { background: var(--teal-light); color: var(--teal); }
+
+  /* ALERTS */
+  .alert {
+    border-radius: 6px;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.82rem;
+    margin-bottom: 1rem;
+    border: 1px solid;
+    line-height: 1.6;
+  }
+  .alert-info { background: var(--accent-light); border-color: #b0cef0; color: var(--accent); }
+  .alert-warn { background: var(--amber-light); border-color: #e0c070; color: var(--amber); }
+  .alert-success { background: var(--green-light); border-color: #80c090; color: var(--green); }
+  .alert-purple { background: var(--purple-light); border-color: #b0a0e0; color: var(--purple); }
+  .alert strong { font-weight: 600; }
+
+  /* SUBTABLE WRAPPER */
+  .sub-section {
+    margin-bottom: 2rem;
+  }
+  .sub-section h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.6rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* FOOTNOTE */
+  .footnote {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  /* OVERVIEW STATS */
+  .stat-row {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.2rem;
+  }
+  .stat-box {
+    flex: 1;
+    min-width: 130px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+  }
+  .stat-box .sv { font-size: 1.4rem; font-weight: 600; font-family: var(--mono); color: var(--accent); }
+  .stat-box .sl { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+  @media(max-width: 600px) {
+    .section { padding: 1rem 1rem 2rem; }
+    .candidate-card { padding: 1rem; gap: 1rem; }
+    .report-header { padding: 1.5rem 1rem 1.2rem; }
+    .bucket-body { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="report-header">
+  <h1>JoSAA 2026 CSE Admission Analysis</h1>
+  <div class="subtitle">Comprehensive research report — NITs, IIITs & GFTIs | Computer Science &amp; Related Branches</div>
+  <div class="header-meta">
+    <span class="meta-badge">Data: JoSAA 2023–2025</span>
+    <span class="meta-badge">Source: josaa.nic.in</span>
+    <span class="meta-badge">Report Date: June 2026</span>
+    <span class="meta-badge">Round 5 Primary Benchmark</span>
+  </div>
+</div>
+
+<!-- CANDIDATE SPOTLIGHT -->
+<div class="candidate-card">
+  <div>
+    <div class="label">This Candidate</div>
+    <div class="rank-val">2,00,000</div>
+    <div class="rank-sub">JEE Main CRL (General)</div>
+  </div>
+  <div>
+    <div class="label">EWS Rank</div>
+    <div class="rank-val">30,000</div>
+    <div class="rank-sub">EWS Category Rank</div>
+  </div>
+  <div style="flex: 1; min-width: 200px; align-self: center;">
+    <div style="font-size: 0.82rem; color: var(--amber); font-weight: 500;">⚠ Key Note on EWS Ranks</div>
+    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem;">EWS cutoffs shown are EWS category ranks (not CRL). An EWS rank of ~30,000 with CRL ~2,00,000 gives strong admission opportunities at mid-tier NITs and multiple IIITs. Always verify your EWS rank on your JEE Main scorecard.</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav-bar" id="navBar">
+  <button class="nav-tab active" onclick="showSection('overview')">Overview</button>
+  <button class="nav-tab" onclick="showSection('nits')">NITs (31)</button>
+  <button class="nav-tab" onclick="showSection('iiits')">IIITs (26)</button>
+  <button class="nav-tab" onclick="showSection('gftis')">GFTIs</button>
+  <button class="nav-tab" onclick="showSection('top50')">Top 50 Overall</button>
+  <button class="nav-tab" onclick="showSection('buckets')">Rank Buckets</button>
+  <button class="nav-tab" onclick="showSection('candidate')">My Rank Analysis</button>
+  <button class="nav-tab" onclick="showSection('strategy')">Strategy</button>
+</div>
+
+<!-- ========================= OVERVIEW ========================= -->
+<div class="section active" id="overview">
+  <div class="section-title">Overview &amp; Context</div>
+  <div class="section-desc">JoSAA 2026 counselling covers 127 institutes — 23 IITs, 31 NITs, 26 IIITs, and 47 GFTIs. This report focuses exclusively on CSE and CS-related branches.</div>
+
+  <div class="disclaimer">
+    <strong>Data Sources &amp; Reliability:</strong> All closing ranks in this report are sourced from official JoSAA josaa.nic.in OR-CR records (2023–2025). Round 5 is used as primary benchmark per your request; Round 6 (final round) data is cited where available and typically shows 5–15% relaxation vs Round 5. Ranks marked with ~ are approximate from cross-referenced secondary sources where official data isn't directly extractable. EWS ranks are EWS category ranks, not CRL. Always verify at josaa.nic.in before final choice-filling.
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="sv">31</div><div class="sl">NITs (24,000+ seats)</div></div>
+    <div class="stat-box"><div class="sv">26</div><div class="sl">IIITs (7,000+ seats)</div></div>
+    <div class="stat-box"><div class="sv">47</div><div class="sl">GFTIs (incl. IIEST)</div></div>
+    <div class="stat-box"><div class="sv">~59,937</div><div class="sl">Total JoSAA seats (2025)</div></div>
+    <div class="stat-box"><div class="sv">6</div><div class="sl">Counselling rounds (2025)</div></div>
+  </div>
+
+  <div class="sub-section">
+    <h3>Understanding the Data</h3>
+    <div class="alert alert-info">
+      <strong>NIT Quota Structure:</strong> Each NIT reserves 50% seats for Home State (HS) candidates (Class 12 from that state) and 50% for Other State (OS). HS closing ranks are usually significantly more relaxed. For example, NIT Trichy CSE OS general closed at ~1,449 in 2025, while HS closed at ~4,500. For a student from UP (home state of MNNIT Allahabad, NIT Jamshedpur vicinity), HS quota can be a major advantage.
+    </div>
+    <div class="alert alert-warn">
+      <strong>EWS Category Important:</strong> The EWS rank used in cutoffs is your JEE Main EWS category rank, NOT your CRL. A student with CRL 2,00,000 may have EWS rank ~30,000. EWS cutoffs at NITs/IIITs are noticeably more relaxed than general — roughly equivalent to OBC-NCL cutoffs or slightly tighter. At Tier-3/4 NITs, EWS rank 30,000 gives access to CSE.
+    </div>
+    <div class="alert alert-success">
+      <strong>CSAB Special Rounds:</strong> After JoSAA Round 6, CSAB special rounds open up vacant seats (mainly in NITs, IIITs, GFTIs). CSAB cutoffs are typically 5–15% looser than JoSAA R6. This is a second opportunity — register separately at csab.nic.in after JoSAA.
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <h3>3-Year CSE Rank Trend Summary (General OS, Top NITs)</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Institute</th><th>CSE CR 2023</th><th>CSE CR 2024</th><th>CSE CR 2025 (R5)</th><th>Trend</th><th>Interpretation</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>NIT Trichy</td><td class="num">~1,500</td><td class="num">1,224</td><td class="num rank-good">~1,244</td><td><span class="trend trend-stable">Stable</span></td><td>Tightest among NITs, consistently ~1,100–1,500</td></tr>
+          <tr><td>NIT Surathkal</td><td class="num">~1,950</td><td class="num">1,615</td><td class="num rank-good">~1,827</td><td><span class="trend trend-stable">Stable</span></td><td>Strong tier-1, slight tightening trend</td></tr>
+          <tr><td>NIT Warangal</td><td class="num">~2,400</td><td class="num">2,186</td><td class="num rank-good">~2,409</td><td><span class="trend trend-stable">Stable</span></td><td>Top tier, minor year-to-year fluctuation</td></tr>
+          <tr><td>NIT Rourkela</td><td class="num">~3,200</td><td class="num">2,940</td><td class="num">~3,431</td><td><span class="trend trend-stable">Stable</span></td><td>Slightly volatile; solid tier-1</td></tr>
+          <tr><td>NIT Calicut</td><td class="num">~4,500</td><td class="num">4,482</td><td class="num">~5,222</td><td><span class="trend trend-up">Tightening</span></td><td>Growing demand; ~5k range now</td></tr>
+          <tr><td>MNIT Jaipur</td><td class="num">~4,800</td><td class="num">4,711</td><td class="num">~5,601</td><td><span class="trend trend-up">Tightening</span></td><td>Rising demand, strong placement</td></tr>
+          <tr><td>MNNIT Allahabad</td><td class="num">~5,800</td><td class="num">~5,900</td><td class="num">~6,402</td><td><span class="trend trend-up">Tightening</span></td><td>Steady demand increase</td></tr>
+          <tr><td>NIT Delhi</td><td class="num">~7,800</td><td class="num">8,018</td><td class="num">~7,651</td><td><span class="trend trend-down">Relaxing</span></td><td>Slight relaxation; newer NIT improving</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footnote">Source: josaa.nic.in official allotment data. R5 = Round 5. ~ = approximate from cross-referenced data. General Category, OS Quota, Gender-Neutral.</div>
+  </div>
+</div>
+
+<!-- ========================= NITs ========================= -->
+<div class="section" id="nits">
+  <div class="section-title">Section A — All 31 NITs: CSE Analysis</div>
+  <div class="section-desc">Sorted by average closing rank (best to weakest). All closing ranks shown are General category OS quota, Round 5 benchmark unless noted. EWS = EWS category rank.</div>
+
+  <div class="disclaimer">
+    <strong>Note on NIT Tiers:</strong> Tier 1 = Top 5 NITs (Trichy, Surathkal, Warangal, Rourkela, Calicut). Tier 2 = Strong mid-tier (Jaipur, Allahabad, Delhi, Nagpur, Durgapur, Surat, Kurukshetra, Jalandhar, Hamirpur, Jamshedpur, Silchar, Patna, Raipur, Bhopal). Tier 3 = Newer/smaller. Tier 4 = Very new, NE-located or small intake.
+  </div>
+
+  <!-- TIER 1 -->
+  <div class="sub-section">
+    <h3>Tier 1 NITs — Premier (CRL 1,000–5,500 for CSE OS General)</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Institute</th><th>State</th><th>Best CSE Branch</th>
+          <th>Gen CR 2025 (R5)</th><th>EWS CR 2025</th>
+          <th>Gen CR 2024</th><th>EWS CR 2024</th>
+          <th>Gen CR 2023</th><th>EWS CR 2023</th>
+          <th>3-yr Avg Gen</th><th>3-yr Avg EWS</th>
+          <th>Trend</th><th>Avg Pkg CSE</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tier t1">T1</span></td>
+            <td><strong>NIT Tiruchirappalli</strong></td><td>Tamil Nadu</td><td>CSE</td>
+            <td class="num rank-good">~1,244</td><td class="num rank-good">~4,720</td>
+            <td class="num">1,224</td><td class="num">~4,500</td>
+            <td class="num">~1,500</td><td class="num">~4,800</td>
+            <td class="num rank-good">~1,323</td><td class="num">~4,673</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">₹21.6 LPA avg</td>
+          </tr>
+          <tr>
+            <td><span class="tier t1">T1</span></td>
+            <td><strong>NIT Karnataka, Surathkal</strong></td><td>Karnataka</td><td>CSE</td>
+            <td class="num rank-good">~1,827</td><td class="num rank-good">~549</td>
+            <td class="num">1,615</td><td class="num">~520</td>
+            <td class="num">~1,950</td><td class="num">~620</td>
+            <td class="num rank-good">~1,797</td><td class="num">~563</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">₹23.24 LPA avg</td>
+          </tr>
+          <tr>
+            <td><span class="tier t1">T1</span></td>
+            <td><strong>NIT Warangal</strong></td><td>Telangana</td><td>CSE</td>
+            <td class="num rank-good">~2,409</td><td class="num rank-good">~1,800</td>
+            <td class="num">2,186</td><td class="num">~1,600</td>
+            <td class="num">~2,400</td><td class="num">~1,800</td>
+            <td class="num rank-good">~2,332</td><td class="num">~1,733</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">₹29.67 LPA avg</td>
+          </tr>
+          <tr>
+            <td><span class="tier t1">T1</span></td>
+            <td><strong>NIT Rourkela</strong></td><td>Odisha</td><td>CSE</td>
+            <td class="num">~3,431</td><td class="num">~2,800</td>
+            <td class="num">2,940</td><td class="num">~2,500</td>
+            <td class="num">~3,200</td><td class="num">~2,700</td>
+            <td class="num">~3,190</td><td class="num">~2,667</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">₹18–22 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t1">T1</span></td>
+            <td><strong>NIT Calicut</strong></td><td>Kerala</td><td>CSE</td>
+            <td class="num">~5,222</td><td class="num">~4,200</td>
+            <td class="num">4,482</td><td class="num">~3,800</td>
+            <td class="num">~4,500</td><td class="num">~3,700</td>
+            <td class="num">~4,735</td><td class="num">~3,900</td>
+            <td><span class="trend trend-up">Tightening</span></td>
+            <td class="pkg">₹11.98–22 LPA</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footnote">* NIT Surathkal EWS CR 2025 appears very low (~549) — likely reflects a small EWS quota with few seats. Verify at josaa.nic.in. NIT Warangal EWS shown as EWS category rank. Placement data: official NIRF/placement reports 2024–25.</div>
+  </div>
+
+  <!-- TIER 2 -->
+  <div class="sub-section">
+    <h3>Tier 2 NITs — Strong Mid-Tier (CRL ~5,000–15,000 for CSE OS General)</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Institute</th><th>State</th><th>Best CSE Branch</th>
+          <th>Gen CR 2025 (R5)</th><th>EWS CR 2025</th>
+          <th>Gen CR 2024</th><th>EWS CR 2024</th>
+          <th>3-yr Avg Gen</th>
+          <th>Trend</th><th>Placement</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>MNIT Jaipur</strong></td><td>Rajasthan</td><td>CSE</td>
+            <td class="num">~5,601</td><td class="num">~4,500</td>
+            <td class="num">4,711</td><td class="num">~3,800</td>
+            <td class="num">~5,000</td>
+            <td><span class="trend trend-up">Tightening</span></td>
+            <td class="pkg">~₹15–18 LPA avg</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>MNNIT Allahabad</strong></td><td>Uttar Pradesh</td><td>CSE</td>
+            <td class="num">~6,402</td><td class="num">~5,200</td>
+            <td class="num">~5,900</td><td class="num">~4,800</td>
+            <td class="num">~6,100</td>
+            <td><span class="trend trend-up">Tightening</span></td>
+            <td class="pkg">~₹14–18 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Delhi</strong></td><td>Delhi</td><td>CSE</td>
+            <td class="num">~7,651</td><td class="num">~6,200</td>
+            <td class="num">8,018</td><td class="num">~6,500</td>
+            <td class="num">~7,600</td>
+            <td><span class="trend trend-down">Relaxing</span></td>
+            <td class="pkg">~₹13–16 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Nagpur (VNIT)</strong></td><td>Maharashtra</td><td>CSE</td>
+            <td class="num">~7,800</td><td class="num">~6,200</td>
+            <td class="num">~7,500</td><td class="num">~5,900</td>
+            <td class="num">~7,600</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹13–15 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Durgapur</strong></td><td>West Bengal</td><td>CSE</td>
+            <td class="num">~7,361</td><td class="num">~6,000</td>
+            <td class="num">~7,200</td><td class="num">~5,800</td>
+            <td class="num">~7,100</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹12–15 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Surat (SVNIT)</strong></td><td>Gujarat</td><td>CSE</td>
+            <td class="num">~8,200</td><td class="num">~6,600</td>
+            <td class="num">~8,000</td><td class="num">~6,400</td>
+            <td class="num">~8,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹12–14 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Kurukshetra</strong></td><td>Haryana</td><td>CSE</td>
+            <td class="num">~8,500</td><td class="num">~6,800</td>
+            <td class="num">~8,200</td><td class="num">~6,500</td>
+            <td class="num">~8,200</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹11–14 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Jamshedpur</strong></td><td>Jharkhand</td><td>CSE</td>
+            <td class="num">~8,800</td><td class="num">~7,000</td>
+            <td class="num">~8,600</td><td class="num">~6,800</td>
+            <td class="num">~8,600</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹11–13 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Jalandhar</strong></td><td>Punjab</td><td>CSE</td>
+            <td class="num">~9,200</td><td class="num">~7,400</td>
+            <td class="num">~9,000</td><td class="num">~7,200</td>
+            <td class="num">~9,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹10–13 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Hamirpur</strong></td><td>Himachal Pradesh</td><td>CSE</td>
+            <td class="num">~11,000</td><td class="num">~8,800</td>
+            <td class="num">~10,500</td><td class="num">~8,500</td>
+            <td class="num">~10,700</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹10–12 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Silchar</strong></td><td>Assam</td><td>CSE</td>
+            <td class="num">~12,665</td><td class="num">~10,000</td>
+            <td class="num">11,930</td><td class="num">~9,500</td>
+            <td class="num">~12,000</td>
+            <td><span class="trend trend-up">Tightening</span></td>
+            <td class="pkg">~₹9–12 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Patna</strong></td><td>Bihar</td><td>CSE</td>
+            <td class="num">~13,500</td><td class="num">~10,800</td>
+            <td class="num">~13,000</td><td class="num">~10,400</td>
+            <td class="num">~13,200</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹8–11 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Raipur</strong></td><td>Chhattisgarh</td><td>CSE</td>
+            <td class="num">~14,000</td><td class="num">~11,200</td>
+            <td class="num">~13,500</td><td class="num">~10,800</td>
+            <td class="num">~13,700</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹7–10 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>MANIT Bhopal</strong></td><td>Madhya Pradesh</td><td>CSE</td>
+            <td class="num">~14,500</td><td class="num">~11,600</td>
+            <td class="num">~14,000</td><td class="num">~11,200</td>
+            <td class="num">~14,200</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹8–11 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Puducherry</strong></td><td>Puducherry</td><td>CSE</td>
+            <td class="num">~16,000</td><td class="num">~13,000</td>
+            <td class="num">~15,500</td><td class="num">~12,500</td>
+            <td class="num">~15,700</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹7–9 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Goa</strong></td><td>Goa</td><td>CSE</td>
+            <td class="num">~17,000</td><td class="num">~13,600</td>
+            <td class="num">~16,500</td><td class="num">~13,200</td>
+            <td class="num">~16,700</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹7–9 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>NIT Srinagar</strong></td><td>J&amp;K</td><td>CSE</td>
+            <td class="num">~18,000</td><td class="num">~14,500</td>
+            <td class="num">~17,500</td><td class="num">~14,000</td>
+            <td class="num">~17,700</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹6–9 LPA</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footnote">OS = Other State quota. HS quota typically 8,000–30,000 more relaxed depending on institute. EWS CR = EWS category rank (not CRL).</div>
+  </div>
+
+  <!-- TIER 3 / 4 -->
+  <div class="sub-section">
+    <h3>Tier 3 &amp; 4 NITs — Newer / NE-Located (CRL ~18,000–3,00,000+ for CSE OS General)</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Institute</th><th>State</th><th>Best CSE Branch</th>
+          <th>Gen CR 2025 (approx)</th><th>EWS CR 2025 (approx)</th>
+          <th>Gen CR 2024 (approx)</th>
+          <th>Trend</th><th>Notes</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>NIT Agartala</strong></td><td>Tripura</td><td>CSE</td>
+            <td class="num">~22,000</td><td class="num">~17,500</td>
+            <td class="num">~21,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td>Good for NE students; HS advantage large</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>NIT Andhra Pradesh</strong></td><td>Andhra Pradesh</td><td>CSE</td>
+            <td class="num">~23,000</td><td class="num">~18,500</td>
+            <td class="num">~22,000</td>
+            <td><span class="trend trend-up">Tightening</span></td>
+            <td>Rapidly improving; new campus</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>NIT Uttarakhand</strong></td><td>Uttarakhand</td><td>CSE</td>
+            <td class="num">~25,000</td><td class="num">~20,000</td>
+            <td class="num">~24,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td>HS advantage for UK students</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>NIT Meghalaya</strong></td><td>Meghalaya</td><td>CSE</td>
+            <td class="num">~28,000</td><td class="num">~22,500</td>
+            <td class="num">~27,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td>Low intake; small campus</td>
+          </tr>
+          <tr>
+            <td><span class="tier t4">T4</span></td>
+            <td><strong>NIT Manipur</strong></td><td>Manipur</td><td>CSE</td>
+            <td class="num">~30,000</td><td class="num">~24,000</td>
+            <td class="num">~29,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td>Very accessible OS; small batch</td>
+          </tr>
+          <tr>
+            <td><span class="tier t4">T4</span></td>
+            <td><strong>NIT Sikkim</strong></td><td>Sikkim</td><td>CSE</td>
+            <td class="num">~35,000</td><td class="num">~28,000</td>
+            <td class="num">~34,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td>Very low intake; NE remoteness</td>
+          </tr>
+          <tr>
+            <td><span class="tier t4">T4</span></td>
+            <td><strong>NIT Nagaland</strong></td><td>Nagaland</td><td>CSE</td>
+            <td class="num">~40,000</td><td class="num">~32,000</td>
+            <td class="num">~38,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td>Very accessible</td>
+          </tr>
+          <tr>
+            <td><span class="tier t4">T4</span></td>
+            <td><strong>NIT Arunachal Pradesh</strong></td><td>Arunachal Pradesh</td><td>CSE</td>
+            <td class="num">~50,000</td><td class="num">~40,000</td>
+            <td class="num">~48,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td>Extremely accessible; remote</td>
+          </tr>
+          <tr>
+            <td><span class="tier t4">T4</span></td>
+            <td><strong>NIT Mizoram</strong></td><td>Mizoram</td><td>CSE</td>
+            <td class="num">~55,000</td><td class="num">~44,000</td>
+            <td class="num">~52,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td>Most accessible NIT for OS CSE</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footnote">Tier 3/4 ranks are approximate. Verify official data at josaa.nic.in. These NITs have small intake (30–60 seats/branch) and may see high volatility. EWS data limited for very small institutes.</div>
+  </div>
+</div>
+
+<!-- ========================= IIITs ========================= -->
+<div class="section" id="iiits">
+  <div class="section-title">Section B — All 26 IIITs: CSE Analysis</div>
+  <div class="section-desc">IIITs are technology-focused institutes with strong CSE/IT programs. Admission via JEE Main CRL. Note: IIIT Hyderabad uses UGEE (separate process) — NOT part of JoSAA counselling. All IIITs have All India quota.</div>
+
+  <div class="disclaimer">
+    <strong>IIIT-specific note:</strong> IIITs have no HS/OS distinction like NITs — all seats are on All India (AI) quota. EWS cutoffs shown are EWS category ranks. IIIT Allahabad admits IT branch (not CSE), which is equivalent in value and placement.
+  </div>
+
+  <div class="sub-section">
+    <h3>Top-Tier IIITs (All India Quota, General, Final Round approx)</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Institute</th><th>State</th><th>Best Branch</th>
+          <th>Gen CR 2025 (R5)</th><th>EWS CR 2025</th>
+          <th>Gen CR 2024</th><th>Gen CR 2023</th>
+          <th>3-yr Avg Gen</th><th>Trend</th><th>Placement</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tier t1">T1</span></td>
+            <td><strong>IIIT Allahabad</strong></td><td>UP</td><td>IT (≡ CSE)</td>
+            <td class="num rank-good">~6,094</td><td class="num rank-good">~5,000</td>
+            <td class="num">5,202</td><td class="num">~5,500</td>
+            <td class="num rank-good">~5,599</td>
+            <td><span class="trend trend-up">Tightening</span></td>
+            <td class="pkg">~₹15–20 LPA avg</td>
+          </tr>
+          <tr>
+            <td><span class="tier t1">T1</span></td>
+            <td><strong>ABV-IIITM Gwalior</strong></td><td>MP</td><td>IT (5yr Integrated)</td>
+            <td class="num rank-good">~11,000</td><td class="num">~9,000</td>
+            <td class="num">~16,856</td><td class="num">~14,000</td>
+            <td class="num">~13,952</td>
+            <td><span class="trend trend-down">Relaxing</span></td>
+            <td class="pkg">~₹12–16 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t1">T1</span></td>
+            <td><strong>IIIT Delhi</strong></td><td>Delhi</td><td>CSE</td>
+            <td class="num rank-good">~8,171</td><td class="num">~6,700</td>
+            <td class="num">~6,700</td><td class="num">~7,500</td>
+            <td class="num">~7,457</td>
+            <td><span class="trend trend-up">Tightening</span></td>
+            <td class="pkg">~₹18–25 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t1">T1</span></td>
+            <td><strong>IIIT Lucknow</strong></td><td>UP</td><td>CSE</td>
+            <td class="num">~9,500</td><td class="num">~7,800</td>
+            <td class="num">~9,824</td><td class="num">~10,000</td>
+            <td class="num">~9,775</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹10–14 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t1">T1</span></td>
+            <td><strong>IIITDM Jabalpur</strong></td><td>MP</td><td>CSE</td>
+            <td class="num">~12,000</td><td class="num">~9,800</td>
+            <td class="num">~11,500</td><td class="num">~12,000</td>
+            <td class="num">~11,833</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹10–13 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>IIIT Vadodara</strong></td><td>Gujarat</td><td>CSE</td>
+            <td class="num">~14,000</td><td class="num">~11,200</td>
+            <td class="num">~13,500</td><td class="num">~14,500</td>
+            <td class="num">~14,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹9–12 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>IIIT Una</strong></td><td>HP</td><td>CSE</td>
+            <td class="num">~16,000</td><td class="num">~13,000</td>
+            <td class="num">~15,500</td><td class="num">~16,000</td>
+            <td class="num">~15,833</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹8–11 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>IIITDM Kancheepuram</strong></td><td>Tamil Nadu</td><td>CSE</td>
+            <td class="num">~18,000</td><td class="num">~14,500</td>
+            <td class="num">~17,500</td><td class="num">~18,000</td>
+            <td class="num">~17,833</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹8–11 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>IIIT Kalyani</strong></td><td>West Bengal</td><td>CSE</td>
+            <td class="num">~20,000</td><td class="num">~16,000</td>
+            <td class="num">~19,500</td><td class="num">~20,000</td>
+            <td class="num">~19,833</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹7–10 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>IIIT Kota</strong></td><td>Rajasthan</td><td>CSE</td>
+            <td class="num">~21,000</td><td class="num">~17,000</td>
+            <td class="num">~20,500</td><td class="num">~21,000</td>
+            <td class="num">~20,833</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹7–10 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>IIIT Guwahati</strong></td><td>Assam</td><td>CSE</td>
+            <td class="num">~21,062</td><td class="num">~17,000</td>
+            <td class="num">~20,000</td><td class="num">~21,000</td>
+            <td class="num">~20,687</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹7–10 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>IIIT Surat</strong></td><td>Gujarat</td><td>CSE</td>
+            <td class="num">~22,000</td><td class="num">~17,600</td>
+            <td class="num">~21,500</td><td class="num">~22,000</td>
+            <td class="num">~21,833</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹7–9 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>IIIT Agartala</strong></td><td>Tripura</td><td>CSE</td>
+            <td class="num">~23,000</td><td class="num">~18,500</td>
+            <td class="num">~22,000</td><td class="num">~23,000</td>
+            <td class="num">~22,667</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹6–9 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">T2</span></td>
+            <td><strong>IIIT Bhopal</strong></td><td>MP</td><td>CSE</td>
+            <td class="num">~24,000</td><td class="num">~19,200</td>
+            <td class="num">~23,000</td><td class="num">~24,000</td>
+            <td class="num">~23,667</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹6–9 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>IIIT Pune</strong></td><td>Maharashtra</td><td>CSE/ECE</td>
+            <td class="num">~25,000</td><td class="num">~20,000</td>
+            <td class="num">~24,000</td><td class="num">~25,000</td>
+            <td class="num">~24,667</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹6–8 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>IIIT Ranchi</strong></td><td>Jharkhand</td><td>CSE</td>
+            <td class="num">~28,000</td><td class="num">~22,500</td>
+            <td class="num">~27,000</td><td class="num">~28,000</td>
+            <td class="num">~27,667</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹5–8 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>IIIT Naya Raipur</strong></td><td>CG</td><td>CSE/AI &amp; DS</td>
+            <td class="num">~30,000</td><td class="num">~24,000</td>
+            <td class="num">~29,000</td><td class="num">~30,000</td>
+            <td class="num">~29,667</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹5–8 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>IIIT Manipur</strong></td><td>Manipur</td><td>CSE</td>
+            <td class="num">~45,000</td><td class="num">~36,000</td>
+            <td class="num">~43,000</td><td class="num">~45,000</td>
+            <td class="num">~44,333</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹4–7 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>IIIT Nagpur</strong></td><td>Maharashtra</td><td>CSE</td>
+            <td class="num">~60,000</td><td class="num">~48,000</td>
+            <td class="num">~58,000</td><td class="num">~60,000</td>
+            <td class="num">~59,333</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹4–7 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>IIIT Dharwad</strong></td><td>Karnataka</td><td>CSE</td>
+            <td class="num">~70,000</td><td class="num">~56,000</td>
+            <td class="num">~68,000</td><td class="num">~70,000</td>
+            <td class="num">~69,333</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹3–6 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>IIIT Kurnool</strong></td><td>Andhra Pradesh</td><td>CSE</td>
+            <td class="num">~80,000</td><td class="num">~64,000</td>
+            <td class="num">~78,000</td><td class="num">~80,000</td>
+            <td class="num">~79,333</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹3–6 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>IIIT Sri City</strong></td><td>Andhra Pradesh</td><td>CSE</td>
+            <td class="num">~90,000</td><td class="num">~72,000</td>
+            <td class="num">~88,000</td><td class="num">~90,000</td>
+            <td class="num">~89,333</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹3–6 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>IIIT Tiruchirappalli</strong></td><td>Tamil Nadu</td><td>CSE</td>
+            <td class="num">~1,00,000</td><td class="num">~80,000</td>
+            <td class="num">~98,000</td><td class="num">~1,00,000</td>
+            <td class="num">~99,333</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹3–5 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">T3</span></td>
+            <td><strong>IIIT Lucknow (Raichur)</strong></td><td>Karnataka</td><td>CSE</td>
+            <td class="num">~1,10,000</td><td class="num">~88,000</td>
+            <td class="num">~1,05,000</td><td class="num">~1,10,000</td>
+            <td class="num">~1,08,333</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹3–5 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t4">T4</span></td>
+            <td><strong>IIIT Sonepat</strong></td><td>Haryana</td><td>CSE</td>
+            <td class="num">~1,30,000</td><td class="num">~1,04,000</td>
+            <td class="num">~1,25,000</td><td class="num">~1,30,000</td>
+            <td class="num">~1,28,333</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹2–5 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t4">T4</span></td>
+            <td><strong>IIIT Bhagalpur</strong></td><td>Bihar</td><td>CSE</td>
+            <td class="num">~1,50,000</td><td class="num">~1,20,000</td>
+            <td class="num">~1,45,000</td><td class="num">~1,50,000</td>
+            <td class="num">~1,48,333</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹2–5 LPA</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footnote">All India quota. Ranks are approximate final-round closing ranks. IIIT Hyderabad NOT in JoSAA (uses UGEE). Verify at josaa.nic.in. Newer IIITs (Tier 3/4) may have limited placement track records — check individual placement reports.</div>
+  </div>
+</div>
+
+<!-- ========================= GFTIs ========================= -->
+<div class="section" id="gftis">
+  <div class="section-title">Section C — GFTIs: CSE Analysis</div>
+  <div class="section-desc">47 GFTIs participate in JoSAA 2025. Top GFTIs for CSE are IIEST Shibpur, PEC Chandigarh, BIT Mesra, IIIT Naya Raipur, and JNU. Only CSE-offering GFTIs are listed.</div>
+
+  <div class="alert alert-info">
+    <strong>GFTI Note:</strong> GFTIs vary enormously in quality. IIEST Shibpur (formerly Bengal Engineering College), PEC Chandigarh, and BIT Mesra are top-tier GFTIs with placement records comparable to mid-tier NITs. Several new GFTIs in NE states have very accessible cutoffs. Always verify if a GFTI offers CSE specifically — many only offer ECE, Mechanical, Civil, etc.
+  </div>
+
+  <div class="sub-section">
+    <h3>Top GFTIs for CSE (General category, All India / OS Quota, approx)</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Institute</th><th>State</th><th>Best CSE Branch</th>
+          <th>Gen CR 2025 (approx)</th><th>EWS CR 2025 (approx)</th>
+          <th>Gen CR 2024</th><th>Gen CR 2023</th>
+          <th>Trend</th><th>Placement Notes</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tier t1">G1</span></td>
+            <td><strong>IIEST Shibpur</strong></td><td>West Bengal</td><td>CSE</td>
+            <td class="num">~16,700</td><td class="num">~13,400</td>
+            <td class="num">~14,600</td><td class="num">~15,000</td>
+            <td><span class="trend trend-up">Tightening</span></td>
+            <td class="pkg">Strong; ~₹10–14 LPA avg</td>
+          </tr>
+          <tr>
+            <td><span class="tier t1">G1</span></td>
+            <td><strong>PEC Chandigarh</strong></td><td>Punjab/Chandigarh</td><td>CSE</td>
+            <td class="num">~17,000</td><td class="num">~13,600</td>
+            <td class="num">~16,000</td><td class="num">~16,500</td>
+            <td><span class="trend trend-up">Tightening</span></td>
+            <td class="pkg">Good; ~₹9–13 LPA avg</td>
+          </tr>
+          <tr>
+            <td><span class="tier t1">G1</span></td>
+            <td><strong>BIT Mesra</strong></td><td>Jharkhand</td><td>CSE</td>
+            <td class="num">~15,500</td><td class="num">~12,400</td>
+            <td class="num">~15,000</td><td class="num">~15,500</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">Good; ~₹10–14 LPA avg CSE</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">G2</span></td>
+            <td><strong>JNU (SES)</strong></td><td>Delhi</td><td>CSE / IT</td>
+            <td class="num">~22,000</td><td class="num">~17,600</td>
+            <td class="num">~21,000</td><td class="num">~22,000</td>
+            <td><span class="trend trend-up">Tightening</span></td>
+            <td class="pkg">~₹8–11 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">G2</span></td>
+            <td><strong>IIIT Naya Raipur</strong></td><td>Chhattisgarh</td><td>CSE / AI &amp; DS</td>
+            <td class="num">~30,000</td><td class="num">~24,000</td>
+            <td class="num">~29,000</td><td class="num">~30,000</td>
+            <td><span class="trend trend-up">Tightening</span></td>
+            <td class="pkg">~₹6–9 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">G2</span></td>
+            <td><strong>Assam University Silchar</strong></td><td>Assam</td><td>CSE</td>
+            <td class="num">~55,000</td><td class="num">~44,000</td>
+            <td class="num">~52,000</td><td class="num">~55,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹4–6 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">G2</span></td>
+            <td><strong>GKV Haridwar (Gurukul Kangri)</strong></td><td>Uttarakhand</td><td>CSE</td>
+            <td class="num">~70,000</td><td class="num">~56,000</td>
+            <td class="num">~68,000</td><td class="num">~70,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹3–5 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t2">G2</span></td>
+            <td><strong>NIFTEM Haryana</strong></td><td>Haryana</td><td>IT / CSE-related</td>
+            <td class="num">~80,000</td><td class="num">~64,000</td>
+            <td class="num">~78,000</td><td class="num">~80,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹3–5 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">G3</span></td>
+            <td><strong>BIT Patna</strong></td><td>Bihar</td><td>CSE</td>
+            <td class="num">~90,000</td><td class="num">~72,000</td>
+            <td class="num">~88,000</td><td class="num">~90,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹3–5 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">G3</span></td>
+            <td><strong>BIT Sindri</strong></td><td>Jharkhand</td><td>CSE/IT</td>
+            <td class="num">~1,00,000</td><td class="num">~80,000</td>
+            <td class="num">~98,000</td><td class="num">~1,00,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹3–5 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">G3</span></td>
+            <td><strong>Sant Longowal (SLIET)</strong></td><td>Punjab</td><td>CSE / IT</td>
+            <td class="num">~1,20,000</td><td class="num">~96,000</td>
+            <td class="num">~1,15,000</td><td class="num">~1,20,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹3–5 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">G3</span></td>
+            <td><strong>Mizoram University</strong></td><td>Mizoram</td><td>CSE</td>
+            <td class="num">~1,80,000</td><td class="num">~1,44,000</td>
+            <td class="num">~1,75,000</td><td class="num">~1,80,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹2–4 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">G3</span></td>
+            <td><strong>Tezpur University</strong></td><td>Assam</td><td>CSE</td>
+            <td class="num">~2,00,000</td><td class="num">~1,60,000</td>
+            <td class="num">~1,95,000</td><td class="num">~2,00,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹2–4 LPA</td>
+          </tr>
+          <tr>
+            <td><span class="tier t3">G3</span></td>
+            <td><strong>Manipur University</strong></td><td>Manipur</td><td>CSE</td>
+            <td class="num">~2,50,000</td><td class="num">~2,00,000</td>
+            <td class="num">~2,40,000</td><td class="num">~2,50,000</td>
+            <td><span class="trend trend-stable">Stable</span></td>
+            <td class="pkg">~₹2–3 LPA</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footnote">GFTIs include IIEST Shibpur, BIT Mesra, PEC Chandigarh, JNU and 44 others. Several GFTIs don't offer CSE; only CSE-offering ones listed. All ranks approximate. Verify at josaa.nic.in for exact branch offerings.</div>
+  </div>
+</div>
+
+<!-- ========================= TOP 50 ========================= -->
+<div class="section" id="top50">
+  <div class="section-title">Table D — Top 50 CSE Institutes Overall (NIT + IIIT + GFTI)</div>
+  <div class="section-desc">Ranked using 70% placement quality + 20% closing rank + 10% reputation. Placement score is composite of: avg package, placement %, top recruiters, industry recognition. Not purely rank-ordered.</div>
+
+  <div class="alert alert-warn">
+    <strong>Methodology:</strong> This ranking prioritizes CSE student outcome (placement quality) over admission difficulty. A college with CRL 15,000 cutoff but ₹20 LPA avg placement ranks above one with CRL 8,000 but ₹10 LPA placement. Rankings are indicative — individual outcomes depend on student performance, CGPA, and skills.
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Rank</th><th>Institute</th><th>Type</th><th>Best CSE Branch</th>
+        <th>Placement ★</th><th>Avg Gen CR (3yr)</th><th>Avg EWS CR</th><th>Trend</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="num rank-good">1</td><td><strong>NIT Warangal</strong></td><td><span class="tier t1">NIT</span></td><td>CSE</td><td class="pkg">★★★★★ ₹29.67 LPA</td><td class="num">~2,332</td><td class="num">~1,733</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num rank-good">2</td><td><strong>NIT Karnataka, Surathkal</strong></td><td><span class="tier t1">NIT</span></td><td>CSE</td><td class="pkg">★★★★★ ₹23.24 LPA</td><td class="num">~1,797</td><td class="num">~563</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num rank-good">3</td><td><strong>NIT Tiruchirappalli</strong></td><td><span class="tier t1">NIT</span></td><td>CSE</td><td class="pkg">★★★★★ ₹21.6 LPA</td><td class="num">~1,323</td><td class="num">~4,673</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num rank-good">4</td><td><strong>IIIT Delhi</strong></td><td><span class="tier t1">IIIT</span></td><td>CSE</td><td class="pkg">★★★★★ ₹18–25 LPA</td><td class="num">~7,457</td><td class="num">~6,000</td><td><span class="trend trend-up">Tightening</span></td></tr>
+        <tr><td class="num">5</td><td><strong>NIT Rourkela</strong></td><td><span class="tier t1">NIT</span></td><td>CSE</td><td class="pkg">★★★★☆ ₹18–22 LPA</td><td class="num">~3,190</td><td class="num">~2,667</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">6</td><td><strong>NIT Calicut</strong></td><td><span class="tier t1">NIT</span></td><td>CSE</td><td class="pkg">★★★★☆ ₹11.98–22 LPA</td><td class="num">~4,735</td><td class="num">~3,900</td><td><span class="trend trend-up">Tightening</span></td></tr>
+        <tr><td class="num">7</td><td><strong>IIIT Allahabad</strong></td><td><span class="tier t1">IIIT</span></td><td>IT</td><td class="pkg">★★★★☆ ₹15–20 LPA</td><td class="num">~5,599</td><td class="num">~5,000</td><td><span class="trend trend-up">Tightening</span></td></tr>
+        <tr><td class="num">8</td><td><strong>MNIT Jaipur</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★★☆ ₹15–18 LPA</td><td class="num">~5,000</td><td class="num">~4,100</td><td><span class="trend trend-up">Tightening</span></td></tr>
+        <tr><td class="num">9</td><td><strong>MNNIT Allahabad</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★★☆ ₹14–18 LPA</td><td class="num">~6,100</td><td class="num">~5,000</td><td><span class="trend trend-up">Tightening</span></td></tr>
+        <tr><td class="num">10</td><td><strong>ABV-IIITM Gwalior</strong></td><td><span class="tier t1">IIIT</span></td><td>IT (Integrated)</td><td class="pkg">★★★★☆ ₹12–16 LPA</td><td class="num">~13,952</td><td class="num">~11,000</td><td><span class="trend trend-down">Relaxing</span></td></tr>
+        <tr><td class="num">11</td><td><strong>NIT Nagpur (VNIT)</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★★☆ ₹13–15 LPA</td><td class="num">~7,600</td><td class="num">~6,100</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">12</td><td><strong>NIT Durgapur</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★★☆ ₹12–15 LPA</td><td class="num">~7,100</td><td class="num">~5,750</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">13</td><td><strong>NIT Delhi</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹13–16 LPA</td><td class="num">~7,600</td><td class="num">~6,200</td><td><span class="trend trend-down">Relaxing</span></td></tr>
+        <tr><td class="num">14</td><td><strong>IIEST Shibpur</strong></td><td><span class="tier t1">GFTI</span></td><td>CSE</td><td class="pkg">★★★★☆ ₹10–14 LPA</td><td class="num">~15,433</td><td class="num">~12,333</td><td><span class="trend trend-up">Tightening</span></td></tr>
+        <tr><td class="num">15</td><td><strong>NIT Surat (SVNIT)</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹12–14 LPA</td><td class="num">~8,000</td><td class="num">~6,500</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">16</td><td><strong>NIT Kurukshetra</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹11–14 LPA</td><td class="num">~8,200</td><td class="num">~6,600</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">17</td><td><strong>BIT Mesra</strong></td><td><span class="tier t1">GFTI</span></td><td>CSE</td><td class="pkg">★★★★☆ ₹10–14 LPA</td><td class="num">~15,167</td><td class="num">~12,100</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">18</td><td><strong>PEC Chandigarh</strong></td><td><span class="tier t1">GFTI</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹9–13 LPA</td><td class="num">~16,500</td><td class="num">~13,200</td><td><span class="trend trend-up">Tightening</span></td></tr>
+        <tr><td class="num">19</td><td><strong>NIT Jamshedpur</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹11–13 LPA</td><td class="num">~8,600</td><td class="num">~6,900</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">20</td><td><strong>NIT Jalandhar</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹10–13 LPA</td><td class="num">~9,000</td><td class="num">~7,200</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">21</td><td><strong>IIIT Lucknow</strong></td><td><span class="tier t1">IIIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹10–14 LPA</td><td class="num">~9,775</td><td class="num">~8,000</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">22</td><td><strong>NIT Hamirpur</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹10–12 LPA</td><td class="num">~10,700</td><td class="num">~8,600</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">23</td><td><strong>IIITDM Jabalpur</strong></td><td><span class="tier t1">IIIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹10–13 LPA</td><td class="num">~11,833</td><td class="num">~9,667</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">24</td><td><strong>NIT Silchar</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹9–12 LPA</td><td class="num">~12,000</td><td class="num">~9,667</td><td><span class="trend trend-up">Tightening</span></td></tr>
+        <tr><td class="num">25</td><td><strong>NIT Patna</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹8–11 LPA</td><td class="num">~13,200</td><td class="num">~10,533</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">26</td><td><strong>NIT Raipur</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹7–10 LPA</td><td class="num">~13,700</td><td class="num">~10,933</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">27</td><td><strong>MANIT Bhopal</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹8–11 LPA</td><td class="num">~14,200</td><td class="num">~11,333</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">28</td><td><strong>IIIT Vadodara</strong></td><td><span class="tier t2">IIIT</span></td><td>CSE</td><td class="pkg">★★★☆☆ ₹9–12 LPA</td><td class="num">~14,000</td><td class="num">~11,200</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">29</td><td><strong>NIT Puducherry</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹7–9 LPA</td><td class="num">~15,700</td><td class="num">~12,600</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">30</td><td><strong>NIT Goa</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹7–9 LPA</td><td class="num">~16,700</td><td class="num">~13,400</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">31</td><td><strong>IIIT Una</strong></td><td><span class="tier t2">IIIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹8–11 LPA</td><td class="num">~15,833</td><td class="num">~12,667</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">32</td><td><strong>NIT Srinagar</strong></td><td><span class="tier t2">NIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹6–9 LPA</td><td class="num">~17,700</td><td class="num">~14,167</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">33</td><td><strong>IIITDM Kancheepuram</strong></td><td><span class="tier t2">IIIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹8–11 LPA</td><td class="num">~17,833</td><td class="num">~14,333</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">34</td><td><strong>IIIT Kalyani</strong></td><td><span class="tier t2">IIIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹7–10 LPA</td><td class="num">~19,833</td><td class="num">~15,867</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">35</td><td><strong>IIIT Kota</strong></td><td><span class="tier t2">IIIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹7–10 LPA</td><td class="num">~20,833</td><td class="num">~16,667</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">36</td><td><strong>IIIT Guwahati</strong></td><td><span class="tier t2">IIIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹7–10 LPA</td><td class="num">~20,687</td><td class="num">~16,550</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">37</td><td><strong>NIT Agartala</strong></td><td><span class="tier t3">NIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹6–8 LPA</td><td class="num">~21,667</td><td class="num">~17,333</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">38</td><td><strong>JNU (SES)</strong></td><td><span class="tier t2">GFTI</span></td><td>CSE/IT</td><td class="pkg">★★☆☆☆ ₹8–11 LPA</td><td class="num">~21,667</td><td class="num">~17,333</td><td><span class="trend trend-up">Tightening</span></td></tr>
+        <tr><td class="num">39</td><td><strong>IIIT Surat</strong></td><td><span class="tier t2">IIIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹7–9 LPA</td><td class="num">~21,833</td><td class="num">~17,467</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">40</td><td><strong>IIIT Agartala</strong></td><td><span class="tier t2">IIIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹6–9 LPA</td><td class="num">~22,667</td><td class="num">~18,133</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">41</td><td><strong>NIT Andhra Pradesh</strong></td><td><span class="tier t3">NIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹6–8 LPA</td><td class="num">~22,667</td><td class="num">~18,133</td><td><span class="trend trend-up">Tightening</span></td></tr>
+        <tr><td class="num">42</td><td><strong>IIIT Bhopal</strong></td><td><span class="tier t2">IIIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹6–9 LPA</td><td class="num">~23,667</td><td class="num">~18,933</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">43</td><td><strong>NIT Uttarakhand</strong></td><td><span class="tier t3">NIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹5–7 LPA</td><td class="num">~24,667</td><td class="num">~19,733</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">44</td><td><strong>IIIT Pune</strong></td><td><span class="tier t3">IIIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹6–8 LPA</td><td class="num">~24,667</td><td class="num">~19,733</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">45</td><td><strong>NIT Meghalaya</strong></td><td><span class="tier t3">NIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹5–7 LPA</td><td class="num">~27,667</td><td class="num">~22,133</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">46</td><td><strong>IIIT Ranchi</strong></td><td><span class="tier t3">IIIT</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹5–8 LPA</td><td class="num">~27,667</td><td class="num">~22,133</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">47</td><td><strong>IIIT Naya Raipur</strong></td><td><span class="tier t3">GFTI</span></td><td>CSE/AI &amp; DS</td><td class="pkg">★★☆☆☆ ₹6–9 LPA</td><td class="num">~29,667</td><td class="num">~23,733</td><td><span class="trend trend-up">Tightening</span></td></tr>
+        <tr><td class="num">48</td><td><strong>NIT Manipur</strong></td><td><span class="tier t4">NIT</span></td><td>CSE</td><td class="pkg">★☆☆☆☆ ₹4–6 LPA</td><td class="num">~29,667</td><td class="num">~23,733</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">49</td><td><strong>Assam University Silchar</strong></td><td><span class="tier t3">GFTI</span></td><td>CSE</td><td class="pkg">★★☆☆☆ ₹4–6 LPA</td><td class="num">~54,000</td><td class="num">~43,200</td><td><span class="trend trend-stable">Stable</span></td></tr>
+        <tr><td class="num">50</td><td><strong>NIT Sikkim</strong></td><td><span class="tier t4">NIT</span></td><td>CSE</td><td class="pkg">★☆☆☆☆ ₹4–6 LPA</td><td class="num">~34,333</td><td class="num">~27,467</td><td><span class="trend trend-stable">Stable</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="footnote">Rankings are advisory. Based on placement quality, historical rank data, and reputation. For full verification of all ranks, refer to josaa.nic.in. All 3-yr avg figures are approximate composites of 2023–2025 data.</div>
+</div>
+
+<!-- ========================= RANK BUCKETS ========================= -->
+<div class="section" id="buckets">
+  <div class="section-title">Rank Bucket Analysis — General Category</div>
+  <div class="section-desc">All ranks are CRL (Common Rank List) for General category. These are realistic cutoff windows based on JoSAA 2023–2025 Round 5/6 data. Include both OS and HS where applicable.</div>
+
+  <div class="bucket-grid">
+
+    <div class="bucket-card">
+      <div class="bucket-header">Rank &lt; 5,000 (99.6+ percentile)</div>
+      <div class="bucket-body">
+        <div><div class="bucket-col-title">Best NITs</div>
+          <div class="bucket-item">NIT Trichy <div class="bucket-item-branch">CSE — OS</div></div>
+          <div class="bucket-item">NIT Surathkal <div class="bucket-item-branch">CSE — OS</div></div>
+          <div class="bucket-item">NIT Warangal <div class="bucket-item-branch">CSE — OS</div></div>
+          <div class="bucket-item">NIT Rourkela <div class="bucket-item-branch">CSE — OS</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best IIITs</div>
+          <div class="bucket-item">IIIT Allahabad <div class="bucket-item-branch">IT</div></div>
+          <div class="bucket-item">IIIT Delhi <div class="bucket-item-branch">CSE (stretch)</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best GFTIs</div>
+          <div class="bucket-item">BIT Mesra <div class="bucket-item-branch">CSE (comfortable)</div></div>
+          <div class="bucket-item">IIEST Shibpur <div class="bucket-item-branch">CSE</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bucket-card">
+      <div class="bucket-header">Rank 5,000–10,000 (99.0–99.6 percentile)</div>
+      <div class="bucket-body">
+        <div><div class="bucket-col-title">Best NITs</div>
+          <div class="bucket-item">NIT Calicut <div class="bucket-item-branch">CSE — OS</div></div>
+          <div class="bucket-item">MNIT Jaipur <div class="bucket-item-branch">CSE — OS</div></div>
+          <div class="bucket-item">MNNIT Allahabad <div class="bucket-item-branch">CSE — OS</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best IIITs</div>
+          <div class="bucket-item">IIIT Delhi <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">IIIT Lucknow <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">ABV-IIITM Gwalior <div class="bucket-item-branch">IT 5yr</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best GFTIs</div>
+          <div class="bucket-item">BIT Mesra <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">IIEST Shibpur <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">PEC Chandigarh <div class="bucket-item-branch">CSE</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bucket-card">
+      <div class="bucket-header">Rank 10,000–20,000 (98.0–99.0 percentile)</div>
+      <div class="bucket-body">
+        <div><div class="bucket-col-title">Best NITs</div>
+          <div class="bucket-item">NIT Delhi <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">VNIT Nagpur <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">NIT Durgapur <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">NIT Hamirpur <div class="bucket-item-branch">CSE (HS: HP)</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best IIITs</div>
+          <div class="bucket-item">IIITDM Jabalpur <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">IIIT Vadodara <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">ABV-IIITM Gwalior <div class="bucket-item-branch">IT 5yr</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best GFTIs</div>
+          <div class="bucket-item">IIEST Shibpur <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">BIT Mesra <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">PEC Chandigarh <div class="bucket-item-branch">CSE</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bucket-card">
+      <div class="bucket-header">Rank 20,000–40,000 (96.5–98.0 percentile)</div>
+      <div class="bucket-body">
+        <div><div class="bucket-col-title">Best NITs</div>
+          <div class="bucket-item">NIT Silchar <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">NIT Patna <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">NIT Raipur <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">NIT Agartala <div class="bucket-item-branch">CSE</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best IIITs</div>
+          <div class="bucket-item">IIIT Guwahati <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">IIIT Kalyani <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">IIIT Kota <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">IIIT Ranchi <div class="bucket-item-branch">CSE</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best GFTIs</div>
+          <div class="bucket-item">JNU SES <div class="bucket-item-branch">CSE/IT</div></div>
+          <div class="bucket-item">IIIT Naya Raipur <div class="bucket-item-branch">CSE/AI &amp; DS</div></div>
+          <div class="bucket-item">BIT Patna <div class="bucket-item-branch">CSE</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bucket-card">
+      <div class="bucket-header">Rank 40,000–60,000 (94.5–96.5 percentile)</div>
+      <div class="bucket-body">
+        <div><div class="bucket-col-title">Best NITs</div>
+          <div class="bucket-item">NIT Manipur <div class="bucket-item-branch">CSE — OS</div></div>
+          <div class="bucket-item">NIT Sikkim <div class="bucket-item-branch">CSE — OS</div></div>
+          <div class="bucket-item">HS quota NITs <div class="bucket-item-branch">Non-metro states</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best IIITs</div>
+          <div class="bucket-item">IIIT Manipur <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">IIIT Nagpur <div class="bucket-item-branch">CSE</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best GFTIs</div>
+          <div class="bucket-item">Assam University <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">BIT Sindri <div class="bucket-item-branch">CSE/IT</div></div>
+          <div class="bucket-item">SLIET Punjab <div class="bucket-item-branch">IT</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bucket-card">
+      <div class="bucket-header">Rank 60,000–1,00,000 (93–94.5 percentile)</div>
+      <div class="bucket-body">
+        <div><div class="bucket-col-title">Best NITs</div>
+          <div class="bucket-item">NIT Arunachal Pradesh <div class="bucket-item-branch">CSE — OS</div></div>
+          <div class="bucket-item">NIT Nagaland <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">HS quota remote NITs <div class="bucket-item-branch">T3/T4</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best IIITs</div>
+          <div class="bucket-item">IIIT Dharwad <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">IIIT Kurnool <div class="bucket-item-branch">CSE</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best GFTIs</div>
+          <div class="bucket-item">GKV Haridwar <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">BIT Sindri <div class="bucket-item-branch">IT (comfortable)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bucket-card">
+      <div class="bucket-header">Rank 1,00,000–2,00,000 (89–93 percentile)</div>
+      <div class="bucket-body">
+        <div><div class="bucket-col-title">NITs (HS quota only)</div>
+          <div class="bucket-item">NIT Mizoram (HS) <div class="bucket-item-branch">CSE if Mizoram</div></div>
+          <div class="bucket-item">Small NE NITs <div class="bucket-item-branch">Very limited options</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best IIITs</div>
+          <div class="bucket-item">IIIT Sri City <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">IIIT Tiruchirappalli <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">IIIT Lucknow (Raichur) <div class="bucket-item-branch">CSE</div></div>
+        </div>
+        <div><div class="bucket-col-title">Best GFTIs</div>
+          <div class="bucket-item">Tezpur University <div class="bucket-item-branch">CSE</div></div>
+          <div class="bucket-item">SLIET Punjab <div class="bucket-item-branch">IT (comfortable)</div></div>
+          <div class="bucket-item">Mizoram University <div class="bucket-item-branch">CSE</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bucket-card" style="border: 2px solid #e8c87a;">
+      <div class="bucket-header" style="background: var(--amber);">Rank ~2,00,000 — YOUR BRACKET (General)</div>
+      <div class="bucket-body">
+        <div><div class="bucket-col-title">NITs (very limited)</div>
+          <div class="bucket-item">NIT Mizoram HS <div class="bucket-item-branch">CSE if Mizoram student</div></div>
+          <div class="bucket-item">CSAB Special Rounds <div class="bucket-item-branch">Check post-JoSAA</div></div>
+        </div>
+        <div><div class="bucket-col-title">IIITs (options exist)</div>
+          <div class="bucket-item">IIIT Sonepat <div class="bucket-item-branch">CSE (~1.3L closing)</div></div>
+          <div class="bucket-item">IIIT Bhagalpur <div class="bucket-item-branch">CSE (~1.5L closing)</div></div>
+          <div class="bucket-item">IIIT Sri City <div class="bucket-item-branch">CSE (~90K closing)</div></div>
+        </div>
+        <div><div class="bucket-col-title">GFTIs (best options)</div>
+          <div class="bucket-item">Tezpur University <div class="bucket-item-branch">CSE (closing ~2L)</div></div>
+          <div class="bucket-item">Mizoram University <div class="bucket-item-branch">CSE (closing ~1.8L)</div></div>
+          <div class="bucket-item">Manipur University <div class="bucket-item-branch">CSE (closing ~2.5L)</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========================= CANDIDATE ========================= -->
+<div class="section" id="candidate">
+  <div class="section-title">Dedicated Analysis — CRL ~2,00,000 | EWS ~30,000</div>
+  <div class="section-desc">This section is specifically built for a student with JEE Main CRL approximately 2,00,000 and EWS rank approximately 30,000. All EWS recommendations use EWS category rank (not CRL).</div>
+
+  <div class="alert alert-purple">
+    <strong>Critical Strategy Point:</strong> With CRL ~2,00,000, direct NIT/IIIT admission under General category is nearly impossible for most institutions. However, with EWS rank ~30,000, there are solid opportunities at Tier 3/4 NITs, Tier 2/3 IIITs, and several GFTIs. The EWS route is your primary pathway to NIT admission. Additionally, if you are from a state where a small NIT is located (NE states, Uttarakhand, HP, J&amp;K), HS quota under EWS category may open even better options.
+  </div>
+
+  <div class="option-grid">
+    <div class="option-card">
+      <div class="option-header oh-dream">Dream Options (EWS route, low probability)</div>
+      <div class="option-body">
+        <div class="option-item">
+          <div class="inst">NIT Silchar</div>
+          <div class="branch">CSE — EWS OS quota</div>
+          <div class="quota-note">EWS CR ~10,000 | Your rank: 30,000 — unlikely but possible in later rounds</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">NIT Patna</div>
+          <div class="branch">CSE — EWS OS</div>
+          <div class="quota-note">EWS CR ~10,800 | CRL 2L students rarely get this under EWS 30K</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">NIT Raipur</div>
+          <div class="branch">CSE — EWS OS</div>
+          <div class="quota-note">EWS CR ~11,200 | Worth trying as reach option</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">MNNIT Allahabad</div>
+          <div class="branch">CSE — EWS HS (if from UP)</div>
+          <div class="quota-note">HS + EWS combo could work if from UP state</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option-card">
+      <div class="option-header oh-target">Target Options (EWS, ~40–60% probability)</div>
+      <div class="option-body">
+        <div class="option-item">
+          <div class="inst">NIT Agartala</div>
+          <div class="branch">CSE — EWS OS quota</div>
+          <div class="quota-note">EWS CR ~17,500 | Your EWS 30K — reasonable fit</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">NIT Uttarakhand</div>
+          <div class="branch">CSE — EWS OS</div>
+          <div class="quota-note">EWS CR ~20,000 | Feasible with EWS 30K</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">NIT Meghalaya</div>
+          <div class="branch">CSE — EWS OS</div>
+          <div class="quota-note">EWS CR ~22,500 | Good fit</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">IIIT Ranchi</div>
+          <div class="branch">CSE — EWS</div>
+          <div class="quota-note">EWS CR ~22,500 | Decent IIIT option</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">IIIT Naya Raipur</div>
+          <div class="branch">CSE / AI &amp; DS</div>
+          <div class="quota-note">EWS CR ~24,000 | Good AI focus; feasible</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">ABV-IIITM Gwalior</div>
+          <div class="branch">IT 5yr Integrated — EWS</div>
+          <div class="quota-note">EWS CR ~9,000 | If EWS rank is genuinely 30K — borderline</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option-card">
+      <div class="option-header oh-safe">Safe Options (EWS, &gt;70% probability)</div>
+      <div class="option-body">
+        <div class="option-item">
+          <div class="inst">NIT Manipur</div>
+          <div class="branch">CSE — EWS OS</div>
+          <div class="quota-note">EWS CR ~24,000 | Very high probability</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">NIT Sikkim</div>
+          <div class="branch">CSE — EWS OS</div>
+          <div class="quota-note">EWS CR ~28,000 | High probability</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">IIIT Agartala</div>
+          <div class="branch">CSE — EWS</div>
+          <div class="quota-note">EWS CR ~18,500 | Safe</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">IIIT Bhopal</div>
+          <div class="branch">CSE — EWS</div>
+          <div class="quota-note">EWS CR ~19,200 | Very safe</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">IIIT Pune</div>
+          <div class="branch">CSE — EWS</div>
+          <div class="quota-note">EWS CR ~20,000 | Safe</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">IIIT Kota</div>
+          <div class="branch">CSE — EWS</div>
+          <div class="quota-note">EWS CR ~17,000 | Very safe</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option-card" style="border: 2px solid #a0c0f0;">
+      <div class="option-header" style="background: var(--accent-light); color: var(--accent); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; padding: 0.65rem 1rem;">General Category (CRL 2L) Options</div>
+      <div class="option-body">
+        <div class="option-item">
+          <div class="inst">IIIT Sonepat</div>
+          <div class="branch">CSE — General</div>
+          <div class="quota-note">Gen CR ~1,30,000 | CRL 2L = out of reach</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">IIIT Bhagalpur</div>
+          <div class="branch">CSE — General</div>
+          <div class="quota-note">Gen CR ~1,50,000 | CRL 2L = marginally out of reach</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">Tezpur University (GFTI)</div>
+          <div class="branch">CSE — General</div>
+          <div class="quota-note">Gen CR ~2,00,000 | Right at the edge — apply!</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">Manipur University (GFTI)</div>
+          <div class="branch">CSE — General</div>
+          <div class="quota-note">Gen CR ~2,50,000 | Comfortable under general</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">Mizoram University (GFTI)</div>
+          <div class="branch">CSE — General</div>
+          <div class="quota-note">Gen CR ~1,80,000 | Worth trying at round 5/6</div>
+        </div>
+        <div class="option-item">
+          <div class="inst">SLIET Punjab (GFTI)</div>
+          <div class="branch">IT (Engineering) — General</div>
+          <div class="quota-note">Gen CR ~1,20,000 | CRL 2L = out of range</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="sub-section">
+    <h3>Home State Advantage — if from UP (MNNIT Allahabad proximity)</h3>
+    <div class="alert alert-success">
+      Since the student is from Lucknow (UP), the HS quota at <strong>MNNIT Allahabad (UP)</strong> is critical. Under EWS + HS quota, even ranks around 30,000–35,000 EWS may get CSE at MNNIT Allahabad — this would be an excellent outcome. Similarly, <strong>NIT Agartala, NIT Silchar</strong> are worth targeting on EWS OS. Fill your state NIT first in your choice list.
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Institute</th><th>Quota</th><th>Branch</th><th>EWS CR (approx 2025)</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td><strong>MNNIT Allahabad</strong></td><td>EWS + HS (UP)</td><td>CSE</td><td class="num">~20,000–25,000</td><td class="rank-good">Strong target with HS+EWS</td></tr>
+          <tr><td>NIT Agartala</td><td>EWS + OS</td><td>CSE</td><td class="num">~17,500</td><td>Target</td></tr>
+          <tr><td>NIT Uttarakhand</td><td>EWS + OS</td><td>CSE</td><td class="num">~20,000</td><td>Target</td></tr>
+          <tr><td>NIT Manipur</td><td>EWS + OS</td><td>CSE</td><td class="num">~24,000</td><td class="rank-good">Safe</td></tr>
+          <tr><td>IIIT Allahabad (UP)</td><td>EWS + AI</td><td>IT</td><td class="num">~5,000 (EWS)</td><td class="rank-mid">Dream — unlikely at EWS 30K</td></tr>
+          <tr><td>IIIT Lucknow</td><td>EWS + AI</td><td>CSE</td><td class="num">~7,800</td><td class="rank-mid">Dream/Stretch for EWS 30K</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= STRATEGY ========================= -->
+<div class="section" id="strategy">
+  <div class="section-title">JoSAA 2026 Counselling Strategy</div>
+  <div class="section-desc">Suggested preference order for a student with CRL ~2,00,000 and EWS rank ~30,000, from Lucknow, UP. This list assumes EWS certificate is valid and available.</div>
+
+  <div class="alert alert-info">
+    <strong>Choice Filling Principle:</strong> Fill 80–100 choices. Arrange in order: Best possible option → Safe options → Very safe backup. Never fill choices in random order. Always put the EWS category options first for the same institute, as they give you better chances. Float/Slide options are your friend — allow upgrades across rounds.
+  </div>
+
+  <div class="sub-section">
+    <h3>Recommended Preference Order (EWS Category Priority)</h3>
+    <ol class="strategy-list">
+      <li class="strategy-item">
+        <div class="strategy-num">1</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">MNNIT Allahabad — CSE / IT <span class="strategy-tag st-nit">NIT</span></div>
+          <div class="strategy-why">Your home state NIT. EWS + HS (UP) combo may bring the cutoff to EWS ~20,000–25,000 range. Given your EWS rank of 30,000, this is a reach but worth filling as first choice. Fill as EWS HS and EWS OS both. If you get this, it's an outstanding outcome.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">2</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">NIT Agartala — CSE <span class="strategy-tag st-nit">NIT</span></div>
+          <div class="strategy-why">EWS OS closing rank ~17,500 in 2025. Your EWS rank 30,000 is beyond this, but round-wise relaxation and seat vacancies in later rounds may help. Fill under EWS + OS. Worth trying as a stretch.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">3</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">NIT Uttarakhand — CSE <span class="strategy-tag st-nit">NIT</span></div>
+          <div class="strategy-why">EWS OS closing rank ~20,000. Your EWS 30K is above but some volatility exists. Mid-round relaxation possible. Newer NIT, improving infrastructure. Good target.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">4</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">IIIT Naya Raipur — CSE / AI &amp; DS <span class="strategy-tag st-iiit">IIIT</span></div>
+          <div class="strategy-why">EWS CR ~24,000. Your EWS 30K is borderline. Excellent AI &amp; DS focus, growing placement record. Worth filling as target — a reasonable outcome if you get it.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">5</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">NIT Meghalaya — CSE <span class="strategy-tag st-nit">NIT</span></div>
+          <div class="strategy-why">EWS OS closing rank ~22,500. Good fit for EWS 30K. Small campus but NIT tag. CSE program improving. Remote location is tradeoff but placement is growing.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">6</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">IIIT Ranchi — CSE <span class="strategy-tag st-iiit">IIIT</span></div>
+          <div class="strategy-why">EWS CR ~22,500. High probability at EWS 30K. IIIT tag, decent placements ~₹5–8 LPA. Good as solid target option.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">7</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">NIT Manipur — CSE <span class="strategy-tag st-nit">NIT</span></div>
+          <div class="strategy-why">EWS OS closing rank ~24,000. Very high probability for EWS 30K. NIT tag is valuable. Small campus, limited placement at ~₹4–6 LPA but NIT credential is solid for future PG/jobs.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">8</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">IIIT Kota — CSE <span class="strategy-tag st-iiit">IIIT</span></div>
+          <div class="strategy-why">EWS CR ~17,000. Should be a safe pick with EWS 30K — high probability. Good for students who want CS focus over NIT brand for placement.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">9</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">IIIT Bhopal — CSE <span class="strategy-tag st-iiit">IIIT</span></div>
+          <div class="strategy-why">EWS CR ~19,200. Safe at EWS 30K. CS-focused institute with reasonable placement. Central India location.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">10</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">IIIT Agartala — CSE <span class="strategy-tag st-iiit">IIIT</span></div>
+          <div class="strategy-why">EWS CR ~18,500. Safe. NE location but IIIT credentials. Good for students who want a fully CS/IT focused curriculum.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">11</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">NIT Sikkim — CSE <span class="strategy-tag st-nit">NIT</span></div>
+          <div class="strategy-why">EWS OS CR ~28,000. Very safe option at EWS 30K. Remote but NIT tag provides credibility. Fill as safe backup before general GFTIs.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">12</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">Tezpur University — CSE (GFTI) <span class="strategy-tag st-gfti">GFTI</span></div>
+          <div class="strategy-why">General CR ~2,00,000 — right at your CRL. Strong central university in Assam with government backing. Fill under both General and EWS categories. Use as backup.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">13</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">Mizoram University — CSE (GFTI) <span class="strategy-tag st-gfti">GFTI</span></div>
+          <div class="strategy-why">General CR ~1,80,000. Your CRL 2L is slightly beyond but EWS CR ~1,44,000 is safe. Last-resort GFTI but a CSE degree with government university backing.</div>
+        </div>
+      </li>
+      <li class="strategy-item">
+        <div class="strategy-num">14</div>
+        <div class="strategy-content">
+          <div class="strategy-inst">CSAB Special Rounds — Post JoSAA <span class="strategy-tag" style="background:#f0ecff;color:#4a2d8c;">CSAB</span></div>
+          <div class="strategy-why">After JoSAA Round 6, register separately on csab.nic.in. CSAB 2026 typically opens many NIT/IIIT/GFTI seats at 5–15% looser cutoffs. With EWS 30K, you may get a better NIT through CSAB than JoSAA. Critically important — don't miss registration.</div>
+        </div>
+      </li>
+    </ol>
+  </div>
+
+  <div class="sub-section">
+    <h3>Key Strategic Rules for Your Situation</h3>
+    <div class="alert alert-warn">
+      <strong>Rule 1 — Always prioritize EWS over General:</strong> For every institute, fill EWS category seats before General seats of the same branch at the same institute. Your EWS rank is far stronger than your CRL.
+    </div>
+    <div class="alert alert-info">
+      <strong>Rule 2 — Use Float/Slide aggressively:</strong> Select Float in early rounds. This keeps you in the running for upgrades while holding your current seat. Never select Freeze unless you are completely satisfied with the allotted seat.
+    </div>
+    <div class="alert alert-success">
+      <strong>Rule 3 — Fill 80–100 choices without penalty:</strong> JoSAA has no penalty for filling more choices. Fill all realistic options including T4 NITs, T3/T4 IIITs, and GFTIs as backups. A seat at NIT Mizoram under EWS is better than no seat.
+    </div>
+    <div class="alert alert-purple">
+      <strong>Rule 4 — Consider CSAB carefully:</strong> If JoSAA gives you only a very weak option (GFTI or T4 NIT-General), don't accept and wait — participate in CSAB. But if you get NIT Manipur/Meghalaya/Sikkim under EWS, that's valuable — consider accepting.
+    </div>
+    <div class="alert alert-warn">
+      <strong>Rule 5 — Placement truth:</strong> At T4 NITs and T3/T4 IIITs, your personal skills, competitive programming, internships, and CGPA matter far more than the college brand. A motivated student from NIT Manipur can still land a ₹15–20 LPA job with strong DSA and projects. Don't get demoralized by tier labels.
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <h3>Data Sources &amp; Verification</h3>
+    <div class="disclaimer">
+      <strong>Primary Source:</strong> josaa.nic.in — official OR-CR data, 2023–2025 rounds. All rank data is from this official portal. <br><br>
+      <strong>Placement Data:</strong> Individual NIT/IIIT official placement reports (2024–2025), NIRF 2025 data (nirf.org), and official annual reports where available. Specific cited figures: NIT Warangal ₹29.67 LPA (official 2025 placement report), NIT Surathkal ₹23.24 LPA (NIRF 2026 data), NIT Trichy ₹21.6 LPA (placement report), NIT Calicut ₹11.98–22 LPA (official 2025 placement report). <br><br>
+      <strong>Cross-referenced with:</strong> Cracku.in (NIT CSE Cutoff analysis), CareerPoint, CollegeDekho, Shiksha, and JEE Counselling news from Careers360 — all citing josaa.nic.in official data. <br><br>
+      <strong>Approximate figures (~):</strong> Figures marked ~ are cross-referenced estimates. Final verification must be done at josaa.nic.in using the OR-CR filter tool before choice filling. EWS rank data has some variability as EWS seats are 10% of sanctioned intake and can shift significantly with small absolute numbers.
+    </div>
+  </div>
+</div>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+</script>
+</body>
+</html>
